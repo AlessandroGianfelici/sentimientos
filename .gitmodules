@@ -1,0 +1,3 @@
+[submodule "train_data/reviews"]
+	path = train_data/reviews
+	url = https://github.com/AlessandroGianfelici/spanish_reviews_dataset.git

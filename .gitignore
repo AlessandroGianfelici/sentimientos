@@ -131,6 +131,3 @@ dmypy.json
 # Other
 *.ipynb
 .ipynb_checkpoints
-
-# Datasets
-train_data/*
