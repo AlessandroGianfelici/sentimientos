@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(name='sentimientos',
       version='0.1.0',
-      description='Sentiment polarity tool for Italian',
+      description='Sentiment analysis for Spanish',
       url='https://github.com/AlessandroGianfelici/sentimientos',
       author='Alessandro Gianfelici',
       author_email='alessandro.gianfelici@hotmail.com',
