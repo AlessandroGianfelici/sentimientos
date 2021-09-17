@@ -12,6 +12,9 @@ import tensorflow as tf
 import numpy as np
 import spacy
 import os
+import string
+import nltk
+from nltk.corpus import stopwords
 
 path = os.path.dirname(__file__)
 
@@ -21,30 +24,59 @@ MAX_N_WEMBS = 200000
 nlp = spacy.load('es_core_news_sm')
 NB_WEMBS = MAX_N_WEMBS
 
-   
-def tok_process(doc):
-   return list(map(lambda x: x.text.lower(),doc))
+nltk.download('stopwords')
 
-def create_word_list(texts):
-    docs = list(map(lambda x:nlp(x), texts))
-    wlist = list(map(lambda x: tok_process(x), docs))
-    word_list = [w for sublist in wlist for w in sublist]
-    return list(set(word_list))
+def getStopWords(custom_stop_words : list = []) -> list:
+    """
+    This function returns a list of spanish stop words
+    """
+    return stopwords.words('spanish') + list(string.printable) + custom_stop_words
+    
+def lemmatize(text : str, nlp = nlp):
+    """
+    Input:
+        - text : str = spanish text to lemmatize
+        - nlp (optional) = modello spacy per l'italiano
+    Output:
+        - testo lemmatizzato (str)
+    """
+    doc = nlp(text)
+    #use list comprehension to reduce time and resources needed
+    return " ".join([token.lemma_ for token in doc]).lower()
 
 def process_texts(texts, maxlen):
     texts_feats = map(lambda x: create_features(x, maxlen), texts)
     return texts_feats   
     
-def create_features(text, maxlen):
-    doc = nlp(text)
+def create_features(text, maxlen, myVoc):
     wemb_idxs = []
-    for tok in doc:
-        text_lower = tok.text.lower()
-        wemb_idx = wemb_ind.get(text_lower, wemb_ind['unknown'])
+    for myWord in text:
+        wemb_idx = myVoc.get(myWord, myVoc['unknown'])
         wemb_idxs.append(wemb_idx)
     wemb_idxs = pad_sequences([wemb_idxs], maxlen=maxlen, value=NB_WEMBS)
     return [wemb_idxs]
 
+def removePunct(stringa):
+    """
+    Rimuove la punteggiatura da una stringa
+    """
+    
+    punteggiatura = [symb for symb in string.punctuation]
+    for punct in punteggiatura:
+        stringa = str(stringa).replace(punct, " ")
+    return stringa
+
+def removeStoWords(stringa):
+    """
+    Rimuove le stopwords
+    """
+    for stop in getStopWords():
+        stringa = str(stringa).replace(stop, " ")
+    return stringa
+
+
+def hasNumbers(inputString):
+    return bool(re.search(r'\d', inputString))
 
 #================ Model ======================#
 
