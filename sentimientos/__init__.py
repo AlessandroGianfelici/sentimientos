@@ -34,7 +34,7 @@ EMBEDDING_DIM = 300
 MAX_N_WEMBS = 200000
 nlp = spacy.load('es_core_news_sm')
 NB_WEMBS = MAX_N_WEMBS
-VOCABULARY = loadVocabulary()
+#VOCABULARY = loadVocabulary()
 nltk.download('stopwords')
 
 
@@ -94,7 +94,7 @@ def removeStopWords(tokenizedStr : list) -> list:
     return list(filter(lambda x : x not in getStopWords(), tokenizedStr))
 
 def preprocessTexts(myString : str) -> list:
-    return pipe(myString, lambda x : x.lower(),
+    return pipe(myString, lambda x : x.lower().replace("\n", " ").replace("\r", " ").replace("\t", " "),
                           removePunct,
                           lemmatize,
                           tokenize,
