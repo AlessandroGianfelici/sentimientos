@@ -15,22 +15,35 @@ import os
 import string
 import nltk
 from nltk.corpus import stopwords
+from toolz.functoolz import pipe
+import yaml
+import logging
+
+logger = logging.getLogger('__main__')
 
 path = os.path.dirname(__file__)
+
+def loadVocabulary():
+    logger.info("Loading vocabulary...This will take a wile")
+    with open(os.path.join(path, f'vocabulary.yaml'), 'r', encoding="utf-8") as handler:
+        return yaml.load(handler, Loader=yaml.FullLoader)
+
 
 MAX_SEQUENCE_LENGTH = 35
 EMBEDDING_DIM = 300
 MAX_N_WEMBS = 200000
 nlp = spacy.load('es_core_news_sm')
 NB_WEMBS = MAX_N_WEMBS
-
+VOCABULARY = loadVocabulary()
 nltk.download('stopwords')
+
+
 
 def getStopWords(custom_stop_words : list = []) -> list:
     """
     This function returns a list of spanish stop words
     """
-    return stopwords.words('spanish') + list(string.printable) + custom_stop_words
+    return  + custom_stop_words
     
 def lemmatize(text : str, nlp = nlp):
     """
@@ -51,12 +64,12 @@ def process_texts(texts, maxlen):
 def create_features(text, maxlen, myVoc):
     wemb_idxs = []
     for myWord in text:
-        wemb_idx = myVoc.get(myWord, myVoc['unknown'])
+        wemb_idx = myVoc.get(myWord, -1)
         wemb_idxs.append(wemb_idx)
     wemb_idxs = pad_sequences([wemb_idxs], maxlen=maxlen, value=NB_WEMBS)
     return [wemb_idxs]
 
-def removePunct(stringa):
+def removePunct(stringa: str) -> str:
     """
     Rimuove la punteggiatura da una stringa
     """
@@ -66,17 +79,26 @@ def removePunct(stringa):
         stringa = str(stringa).replace(punct, " ")
     return stringa
 
-def removeStoWords(stringa):
+
+def tokenize(myString : str, nlp=nlp) -> str:
+    doc = nlp(myString)
+    return [str(token) for token in doc]
+
+def getStopWords():
+    return stopwords.words('spanish') + list(string.printable) + ["  "]
+
+def removeStopWords(tokenizedStr : list) -> list:
     """
     Rimuove le stopwords
     """
-    for stop in getStopWords():
-        stringa = str(stringa).replace(stop, " ")
-    return stringa
+    return list(filter(lambda x : x not in getStopWords(), tokenizedStr))
 
-
-def hasNumbers(inputString):
-    return bool(re.search(r'\d', inputString))
+def preprocessTexts(myString : str) -> list:
+    return pipe(myString, lambda x : x.lower(),
+                          removePunct,
+                          lemmatize,
+                          tokenize,
+                          removeStopWords)
 
 #================ Model ======================#
 
@@ -131,7 +153,6 @@ class Model():
 def calculate_polarity(sentences: list):
     results = []
     sentences = list(map(lambda x: x.lower(), sentences))
-    #sentences = list(map(lambda x: re.sub('[^a-zA-z0-9\s]','',x), sentences))
     X_ctest = list(process_texts(sentences, MAX_SEQUENCE_LENGTH))
     n_ctest_sents = len(X_ctest)
 
