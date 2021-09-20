@@ -1,8 +1,9 @@
-from sentimientos import preprocessTexts, Model, MAX_SEQUENCE_LENGTH, EMBEDDING_DIM, MAX_N_WEMBS
+from sentimientos import loadVocabulary, process_texts, preprocessTexts, SentimientosModel, MAX_SEQUENCE_LENGTH, EMBEDDING_DIM, MAX_N_WEMBS, process_text, NB_WEMBS
 import pandas as pd
 import os
 import gensim
 import yaml
+import numpy as np
 
 path = os.path.dirname(__file__)
 
@@ -30,14 +31,21 @@ def buildVocabulary(tokenized_text):
 
 if __name__ == '__main__':
     try:
-        train_data = pd.read_pickle("serialized_train_data.pickle")
-        mydict = buildVocabulary(train_data['processed_text'])
+        train_data = pd.read_pickle(os.path.join(path, 'sentimientos', "serialized_train_data.pickle"))
+        mydict = loadVocabulary()
     except:
         train_data = getTrainData()
         print(f"Collected {len(train_data)} texts! {sum(train_data['positive'])} positive and {sum(train_data['negative'])} negative")
         train_data['processed_text'] = train_data['text'].map(preprocessTexts)
         mydict = buildVocabulary(train_data['processed_text'])
-        train_data.to_pickle("serialized_train_data.pickle")
-        with open('vocabulary.yml', 'w') as outfile:
+        train_data.to_pickle(os.path.join(path, 'sentimientos', "serialized_train_data.pickle"))
+        with open(os.path.join(path, 'sentimientos', 'vocabulary.yaml'), 'w') as outfile:
             yaml.dump(mydict, outfile, default_flow_style=False)
-    
+    print("done!")
+    X_train = list(process_texts(train_data['processed_text'], mydict, maxlen=MAX_SEQUENCE_LENGTH))
+    Y_train =  train_data[['positive','negative']].values
+    n_ctest_sents = len(X_train)
+    X_train_reshaped = np.reshape(np.array([e[0] for e in X_train]), [n_ctest_sents, MAX_SEQUENCE_LENGTH])
+    sent_model = SentimientosModel(max_len=MAX_SEQUENCE_LENGTH, emb_dim=EMBEDDING_DIM)
+    sent_model.fit(X_train_reshaped, Y_train, shuffle=True)
+    sent_model.save(os.path.join(path, 'sentimientos', "saved_model"))

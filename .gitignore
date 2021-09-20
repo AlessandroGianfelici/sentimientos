@@ -132,3 +132,4 @@ dmypy.json
 # Other
 *.ipynb
 .ipynb_checkpoints
+*.pickle
