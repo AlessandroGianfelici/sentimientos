@@ -24,9 +24,10 @@ def buildVocabulary(tokenized_text):
     dictionary = myvoc.token2id
     frequencyDict = myvoc.cfs
     newDict = dict(filter(lambda elem: elem[1] > 2, frequencyDict.items()))
-    result = dict(filter(lambda elem: elem[1] in newDict.keys(), dictionary.items()))
-    result['unknown'] = len(result)
-    return result
+    mydict = dict(filter(lambda elem: elem[1] in newDict.keys(), dictionary.items()))
+    shrinkedDict = {key : value for key, value in zip(mydict.keys(), range(len(mydict)))}
+    shrinkedDict['unknown'] = len(shrinkedDict)
+    return shrinkedDict
 
 
 if __name__ == '__main__':
