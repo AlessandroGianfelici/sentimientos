@@ -1,4 +1,4 @@
-from sentimientos import loadVocabulary, process_texts, preprocessTexts, SentimientosModel, MAX_SEQUENCE_LENGTH, EMBEDDING_DIM, MAX_N_WEMBS, process_text, NB_WEMBS
+from sentimientos import loadVocabulary, process_texts, preprocessTexts, SentimientosModel, MAX_SEQUENCE_LENGTH, EMBEDDING_DIM, MAX_N_WEMBS, NB_WEMBS
 import pandas as pd
 import os
 import gensim
