@@ -43,6 +43,7 @@ if __name__ == '__main__':
         with open(os.path.join(path, 'sentimientos', 'vocabulary.yaml'), 'w') as outfile:
             yaml.dump(mydict, outfile, default_flow_style=False)
     print("done!")
+    train_data = train_data.sample(frac = 1)
     X_train = list(process_texts(train_data['processed_text'], mydict, maxlen=MAX_SEQUENCE_LENGTH))
     Y_train =  train_data[['positive','negative']].values
     n_ctest_sents = len(X_train)
