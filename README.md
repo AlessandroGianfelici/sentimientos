@@ -20,6 +20,9 @@ from sentimientos import calculate_polarity
 
 calculate_polarity(["sample sentence 1", "sample sentence 2", "sample sentence 3"], verbose=True)
 ```
+
+the result are the polarities (the first component is the positive polarity and the second component the negative polarity) of the sentences.
+
 # Credits
 The model is heavily inspired by SentITA, an analogous library for the italian language:
 
