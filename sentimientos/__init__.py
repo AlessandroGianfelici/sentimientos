@@ -34,6 +34,7 @@ NB_WEMBS = MAX_N_WEMBS
 
 MODEL_ID = "1_9Y1Nes_m4TQEuBkfPn-1FVVDVofbhBm"
 MODEL_PATH = os.path.join(path, 'saved_model.zip')
+FOLDER_PATH = MODEL_PATH[:-4]
 nltk.download('stopwords')
 
 
@@ -165,16 +166,17 @@ def file_folder_exists(path: str):
 def download_and_extract(file_id, destination):
     download_file_from_google_drive(file_id, destination)
     shutil.unpack_archive(destination, destination[:-4])
+    return destination[:-4]
 
 class SentimientosModel():
     def __init__(self, max_len=MAX_SEQUENCE_LENGTH, emb_dim=EMBEDDING_DIM, pretrained=True):
-        
-        try:
-            assert pretrained
-            if not file_folder_exists(MODEL_PATH):
-                download_and_extract(MODEL_ID, MODEL_PATH)
-            self.model = tf.keras.models.load_model(MODEL_PATH)
-        except:
+        FOLDER_PATH = MODEL_PATH[:-4]
+        if pretrained:
+            if not file_folder_exists(FOLDER_PATH):
+                print("I am loading the pretrained model, this will take a while!")
+                FOLDER_PATH = download_and_extract(MODEL_ID, MODEL_PATH)
+            self.model = tf.keras.models.load_model(FOLDER_PATH)
+        else:
             self.model = None
         #self.load_model(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM)
         self.early_stop =  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
