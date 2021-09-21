@@ -24,6 +24,8 @@ calculate_polarity(["sample sentence 1", "sample sentence 2", "sample sentence 3
 the result are the polarities (the first component is the positive polarity and the second component the negative polarity) of the sentences.
 
 # Credits
-The model is heavily inspired by SentITA, an analogous library for the italian language:
+The model is heavily based on SentITA, an analogous library for the italian language:
 
 https://github.com/NicGian/SentITA
+
+Sentimientos uses the same network architecture, but a quite different preprocessing of the input texts.
