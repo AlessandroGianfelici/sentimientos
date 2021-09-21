@@ -116,7 +116,7 @@ class SentimientosModel():
     def __init__(self, max_len=MAX_SEQUENCE_LENGTH, emb_dim=EMBEDDING_DIM):
         self.model = None
         #self.load_model(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM)
-        self.early_stop =  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=7)
+        self.early_stop =  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
         self.epochs =  10000
         self.dict_dim=NB_WEMBS
         self.max_len = MAX_SEQUENCE_LENGTH
