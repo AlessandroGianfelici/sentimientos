@@ -198,7 +198,7 @@ class SentimientosModel():
         h = Flatten()(h)
         preds_pol = Dense(2, activation='sigmoid')(h)
         model_pol = Model(inputs=[x1], outputs=preds_pol)
-        model_pol.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+        model_pol.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=[tf.keras.metrics.AUC()])
         #model_pol.summary()
         self.model = model_pol
         return model_pol
