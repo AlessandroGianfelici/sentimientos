@@ -295,14 +295,14 @@ def zipFolder(directory : str) -> str:
     return f'{directory}.zip'
 
 
-def calculate_polarity(sentences: list):
-    results = []
-    sentences = list(map(lambda x: x.lower(), sentences))
-    X_ctest = list(process_texts(sentences, VOCABULARY, MAX_SEQUENCE_LENGTH))
+def calculate_polarity(sentences: list, verbose=False):
+    sentences_prepro = list(map(preprocessTexts, sentences))
+    X_ctest = list(process_texts(sentences_prepro, VOCABULARY, MAX_SEQUENCE_LENGTH))
     n_ctest_sents = len(X_ctest)
     test_wemb_idxs = np.reshape(np.array([e[0] for e in X_ctest]), [n_ctest_sents, MAX_SEQUENCE_LENGTH])
     sent_model = SentimientosModel(max_len=MAX_SEQUENCE_LENGTH, emb_dim=EMBEDDING_DIM, pretrained=True)
     preds = sent_model.predict([test_wemb_idxs])
-    for i in range(n_ctest_sents):
-        results.append(sentences[i] + ' - ' + 'opos: ' + str(preds[i][0]) + ' - oneg: ' + str(preds[i][1]))
-    return results, preds
+    if verbose:
+        for i in range(n_ctest_sents):
+            print(sentences[i] + ' - ' + 'opos: ' + str(preds[i][0]) + ' - oneg: ' + str(preds[i][1]))
+    return preds
