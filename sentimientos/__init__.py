@@ -188,9 +188,9 @@ class SentimientosModel():
     def buildModel(self):
 
         x1 = Input(shape=(self.max_len,))
-        w_embed = Embedding(self.dict_dim+1, self.emb_dim, input_length=self.max_len, trainable=False)(x1)
-        w_embed = Dropout(0.5)(Dense(64, activation='relu')(w_embed))
-        h = Conv1D(filters=32, kernel_size=2, padding='valid', activation='relu')(w_embed)
+        h = Embedding(self.dict_dim+1, self.emb_dim, input_length=self.max_len, trainable=False)(x1)
+        h = Dropout(0.5)(Dense(64, activation='relu')(h))
+        h = Conv1D(filters=32, kernel_size=2, padding='valid', activation='relu')(h)
         h = Bidirectional(LSTM(32, return_sequences=True, recurrent_dropout=0.5), merge_mode='concat')(h)
         h = AveragePooling1D(pool_size=2, strides=None, padding='valid')(h)
         h = Bidirectional(LSTM(16, return_sequences=True, recurrent_dropout=0.5), merge_mode='concat')(h)
