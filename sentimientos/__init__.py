@@ -177,7 +177,7 @@ class SentimientosModel():
         except:
             self.model = None
         #self.load_model(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM)
-        self.early_stop =  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=7)
+        self.early_stop =  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
         self.epochs =  10000
         self.dict_dim=NB_WEMBS
         self.max_len = max_len
@@ -196,7 +196,7 @@ class SentimientosModel():
         h = Flatten()(h)
         preds_pol = Dense(2, activation='sigmoid')(h)
         model_pol = Model(inputs=[x1], outputs=preds_pol)
-        model_pol.compile(loss='binary_crossentropy', optimizer='nadam', metrics=['accuracy'])
+        model_pol.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
         #model_pol.summary()
         self.model = model_pol
         return model_pol
