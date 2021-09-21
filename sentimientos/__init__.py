@@ -188,15 +188,19 @@ class SentimientosModel():
     def buildModel(self):
 
         x1 = Input(shape=(self.max_len,))
-        w_embed = Embedding(self.dict_dim+1, self.emb_dim, input_length=self.max_len, trainable=False)(x1)
-        w_embed = Dropout(0.5)(Dense(64, activation='relu')(w_embed))
-        h = Conv1D(filters=32, kernel_size=2, padding='valid', activation='relu')(w_embed)
-        h = Bidirectional(LSTM(32, return_sequences=True, recurrent_dropout=0.5), merge_mode='concat')(h)
-        h = AveragePooling1D(pool_size=2, strides=None, padding='valid')(h)
-        h = Bidirectional(LSTM(16, return_sequences=True, recurrent_dropout=0.5), merge_mode='concat')(h)
-        h = AveragePooling1D(pool_size=2, strides=None, padding='valid')(h)
-        h = Flatten()(h)
-        preds_pol = Dense(2, activation='sigmoid')(h)
+        
+        preds_pol = pipe(x1, 
+        Embedding(self.dict_dim+1, self.emb_dim, input_length=self.max_len, trainable=False),
+        Dropout(0.5),
+        Dense(64, activation='relu'),
+        Conv1D(filters=32, kernel_size=2, padding='valid', activation='relu'),
+        Bidirectional(LSTM(32, return_sequences=True, recurrent_dropout=0.5), merge_mode='concat'),
+        AveragePooling1D(pool_size=2, strides=None, padding='valid'),
+        Bidirectional(LSTM(16, return_sequences=True, recurrent_dropout=0.5), merge_mode='concat'),
+        AveragePooling1D(pool_size=2, strides=None, padding='valid'),
+        Flatten(),
+        Dense(2, activation='sigmoid'))
+        
         model_pol = Model(inputs=[x1], outputs=preds_pol)
         model_pol.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=[tf.keras.metrics.AUC()])
         #model_pol.summary()
