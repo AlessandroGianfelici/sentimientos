@@ -47,6 +47,6 @@ if __name__ == '__main__':
     Y_train =  train_data[['positive','negative']].values
     n_ctest_sents = len(X_train)
     X_train_reshaped = np.reshape(np.array([e[0] for e in X_train]), [n_ctest_sents, MAX_SEQUENCE_LENGTH])
-    sent_model = SentimientosModel(max_len=MAX_SEQUENCE_LENGTH, emb_dim=EMBEDDING_DIM)
+    sent_model = SentimientosModel(max_len=MAX_SEQUENCE_LENGTH, emb_dim=EMBEDDING_DIM, pretrained=False)
     sent_model.fit(X_train_reshaped, Y_train, shuffle=True)
     sent_model.save(os.path.join(path, 'sentimientos', "saved_model"))

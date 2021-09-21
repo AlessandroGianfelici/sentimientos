@@ -11,7 +11,7 @@ from tensorflow.keras.models import Model
 import tensorflow as tf
 import numpy as np
 import spacy
-import os
+import os, shutil
 import string
 import nltk
 from nltk.corpus import stopwords
@@ -21,23 +21,61 @@ import logging
 import re
 import pandas as pd
 from zipfile import ZipFile, ZIP_DEFLATED
+import requests
 
 logger = logging.getLogger('__main__')
-
 path = os.path.dirname(__file__)
-
-def loadVocabulary():
-    logger.info("Loading vocabulary...This will take a wile")
-    with open(os.path.join(path, f'vocabulary.yaml'), 'r', encoding="utf-8") as handler:
-        return yaml.load(handler, Loader=yaml.FullLoader)
-
 
 MAX_SEQUENCE_LENGTH = 100
 EMBEDDING_DIM = 300
 MAX_N_WEMBS = 500000
 nlp = spacy.load('es_core_news_sm')
 NB_WEMBS = MAX_N_WEMBS
+
+MODEL_ID = "1_9Y1Nes_m4TQEuBkfPn-1FVVDVofbhBm"
+MODEL_PATH = os.path.join(path, 'saved_model.zip')
 nltk.download('stopwords')
+
+
+def loadVocabulary():
+    logger.info("Loading vocabulary...This will take a wile")
+    with open(os.path.join(path, f'vocabulary.yaml'), 'r', encoding="utf-8") as handler:
+        return yaml.load(handler, Loader=yaml.FullLoader)
+
+try:
+    VOCABULARY = loadVocabulary()
+except:
+    print("vocabulary.yaml not found, check the path or train again the model!")
+    VOCABULARY = None
+
+def download_file_from_google_drive(id, destination):
+    URL = "https://docs.google.com/uc?export=download"
+
+    session = requests.Session()
+
+    response = session.get(URL, params = { 'id' : id }, stream = True)
+    token = get_confirm_token(response)
+
+    if token:
+        params = { 'id' : id, 'confirm' : token }
+        response = session.get(URL, params = params, stream = True)
+
+    save_response_content(response, destination)    
+
+def get_confirm_token(response):
+    for key, value in response.cookies.items():
+        if key.startswith('download_warning'):
+            return value
+
+    return None
+
+def save_response_content(response, destination):
+    CHUNK_SIZE = 32768
+
+    with open(destination, "wb") as f:
+        for chunk in response.iter_content(CHUNK_SIZE):
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
 
 def hasNumbers(inputString):
     return bool(re.search(r'\d', inputString))
@@ -110,17 +148,40 @@ def preprocessTexts(myString : str) -> list:
                           removeNumeric,
                           removeStopWords)
 
-#================ Model ======================#
+
+def file_folder_exists(path: str):
+    """
+    Return True if a file or folder exists.
+
+    :param path: the full path to be checked
+    :type path: str
+    """
+    try:
+        os.stat(path)
+        return True
+    except:
+        return False
+
+def download_and_extract(file_id, destination):
+    download_file_from_google_drive(file_id, destination)
+    shutil.unpack_archive(destination, destination[:-4])
 
 class SentimientosModel():
-    def __init__(self, max_len=MAX_SEQUENCE_LENGTH, emb_dim=EMBEDDING_DIM):
-        self.model = None
+    def __init__(self, max_len=MAX_SEQUENCE_LENGTH, emb_dim=EMBEDDING_DIM, pretrained=True):
+        
+        try:
+            assert pretrained
+            if not file_folder_exists(MODEL_PATH):
+                download_and_extract(MODEL_ID, MODEL_PATH)
+            self.model = tf.keras.models.load_model(MODEL_PATH)
+        except:
+            self.model = None
         #self.load_model(MAX_SEQUENCE_LENGTH, EMBEDDING_DIM)
         self.early_stop =  tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=7)
         self.epochs =  10000
         self.dict_dim=NB_WEMBS
-        self.max_len = MAX_SEQUENCE_LENGTH
-        self.emb_dim=EMBEDDING_DIM
+        self.max_len = max_len
+        self.emb_dim=emb_dim
 
     def buildModel(self):
 
@@ -139,9 +200,6 @@ class SentimientosModel():
         #model_pol.summary()
         self.model = model_pol
         return model_pol
-
-    def load_weights(self):
-        pass
 
     def fit(self, x, y, **args) -> tf.keras.callbacks.History:
         """
@@ -230,15 +288,14 @@ def zipFolder(directory : str) -> str:
     logger.info('All files zipped successfully!')
     return f'{directory}.zip'
 
+
 def calculate_polarity(sentences: list):
     results = []
     sentences = list(map(lambda x: x.lower(), sentences))
-    X_ctest = list(process_texts(sentences, MAX_SEQUENCE_LENGTH))
+    X_ctest = list(process_texts(sentences, VOCABULARY, MAX_SEQUENCE_LENGTH))
     n_ctest_sents = len(X_ctest)
-
     test_wemb_idxs = np.reshape(np.array([e[0] for e in X_ctest]), [n_ctest_sents, MAX_SEQUENCE_LENGTH])
-
-    sent_model = SentimientosModel(max_len=MAX_SEQUENCE_LENGTH, emb_dim=EMBEDDING_DIM)
+    sent_model = SentimientosModel(max_len=MAX_SEQUENCE_LENGTH, emb_dim=EMBEDDING_DIM, pretrained=True)
     preds = sent_model.predict([test_wemb_idxs])
     for i in range(n_ctest_sents):
         results.append(sentences[i] + ' - ' + 'opos: ' + str(preds[i][0]) + ' - oneg: ' + str(preds[i][1]))
