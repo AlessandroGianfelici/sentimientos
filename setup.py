@@ -10,6 +10,6 @@ setup(name='sentimientos',
       packages=find_packages(),
       include_package_data=True,
       install_requires=[
-          'tensorflow', 'spacy', 'numpy',
+          'tensorflow', 'spacy', 'numpy', 'pandas', 'nltk'
       ],
       zip_safe=False)
