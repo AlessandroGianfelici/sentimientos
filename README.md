@@ -7,7 +7,9 @@ The model is based on a bidirectional recurrent neural network. It has been trai
 # Usage
 Install sentimientos using pip:
 
+```bash
 pip install git+https://github.com/AlessandroGianfelici/sentimientos.git
+```
 
 Download the SpaCy model for Spanish:
 
