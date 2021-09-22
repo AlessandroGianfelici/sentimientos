@@ -13,7 +13,9 @@ pip install git+https://github.com/AlessandroGianfelici/sentimientos.git
 
 Download the SpaCy model for Spanish:
 
+```bash
 python -m spacy download es_core_news_sm
+```
 
 Try some sample sentences:
 
