@@ -24,7 +24,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 import requests
 
 logger = logging.getLogger('__main__')
-path = os.path.dirname(__file__)
+path = os.path.dirname(__file__) if "__file__" in locals() else os.getcwd()
 
 MAX_SEQUENCE_LENGTH = 100
 EMBEDDING_DIM = 300
